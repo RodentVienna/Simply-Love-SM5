@@ -6,6 +6,9 @@ local PlayerDefaults = {
 			self.ActiveModifiers = {
 				JudgmentGraphic = "Love",
 				Mini = "0%",
+-- RODENT JUDGE-POS-Y BEGIN
+				JudgePosY = 0,
+-- RODENT JUDGE-POS-Y END
 				BackgroundFilter = "Off",
 				SpeedModType = "x",
 				SpeedMod = 1.00,

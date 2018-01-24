@@ -1,6 +1,11 @@
 local player = Var "Player"
 local pn = ToEnumShortString(player)
 local mods = SL[pn].ActiveModifiers
+
+-- RODENT JUDGE-POS-Y BEGIN
+local playeroptions = GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred")
+-- RODENT JUDGE-POS-Y END
+
 local kids, JudgmentSet
 
 if mods.JudgmentGraphic == "None" then
@@ -89,6 +94,21 @@ local t = Def.ActorFrame {
 		JudgmentSet:visible( true )
 		JudgmentSet:setstate( frame )
 
+-- RODENT JUDGE-POS-Y BEGIN
+		local reversestate = playeroptions:Reverse()
+		if reversestate == 0 then
+			JudgmentSet:y( mods.JudgePosY )
+		else
+			-- +60 to compensate for top overlapping. does not align
+			-- opinion: targets on reverse should be closer to bottom.
+		--	if mods.JudgePosY > 160 then 
+		--		JudgmentSet:y( mods.JudgePosY * -1 +60 )
+		--	else 
+				JudgmentSet:y( mods.JudgePosY * -1 )
+		--	end
+		end
+-- RODENT JUDGE-POS-Y END
+		
 		-- frame0 is like (-fantastic)
 		-- frame1 is like (fantastic-)
 		if frame == 0 or frame == 1 then

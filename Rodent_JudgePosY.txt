@@ -1,0 +1,83 @@
+judgment ypos, judge zoom?, combo ypos, combo zoom?
+
+
+
+1) Judgment yPos mod
+#################
+passive dev files
+#################
+--
+/Languages/en.ini - ADD:
+
+	-- ADD ~line 399:
+	JudgePosY=Judgement Position
+		
+	-- ADD ~line 481:
+	JudgePosY=Change the vertical position of the judgment label.
+
+--	
+/Scripts/SL_Init.lua - set init value ADD ~line 9:
+	
+	-- ADD:
+	JudgePosY = 0,
+
+--
+/metrics.ini
+
+	-- ~line 651 ADD
+	LineJudgePosY="lua,CustomOptionRow('JudgePosY')"
+	
+################	
+active dev files
+################
+--
+/Scripts/SL-PlayerOptions.lua - ADD Modifier ~ line 175:
+
+	-- ADD JudgePosY
+	-------------------------------------------------------------------------
+	JudgePosY = {
+--		do this until ComboPosY is developed and put in perspective to JudgePosY, to prevent overlapping
+		Choices = function() return { "0", "10", "20", "30", "100", "110", "120", "130", "140", "150", "160", "170", "180", "190", "200", "210", "220" } end,
+--		Choices = function()
+--			local first	= 0
+--			local last 	= 200
+--			local step 	= 10
+--
+--			return stringify( range(first, last, step), "%g")
+--		end,		
+		LoadSelections = function(self, list, pn)
+			local mods = SL[ToEnumShortString(pn)].ActiveModifiers
+			local i = FindInTable(tostring(mods.JudgePosY), self.Choices)
+			list[i] = true
+			return list
+		end
+	},
+		
+--		
+/Scripts/SL-Helpers.lua - ADD/EDIT name+sortorder ~line 163:
+		
+	-- ADD JudgePosY (after Judgment. before BackgroundFilter)
+	return "SpeedModType,SpeedMod,Mini,Perspective,NoteSkin2,Judgment,JudgePosY,BackgroundFilter,MusicRate,Difficulty,ScreenAfterPlayerOptions"
+
+	-- OR ADD here in ~line 168, after ReceptorArrowsPosition, before LifeMeterType:
+	local mods = "Turn,Scroll,7,8,9,10,11,12,13,Attacks,Hide,ReceptorArrowsPosition,JudgePosY,LifeMeterType,TargetStatus,TargetBar,GameplayExtras,MeasureCounterPosition,MeasureCounter,DecentsWayOffs,Vocalization,ScreenAfterPlayerOptions2"
+	
+--
+/Graphics/Player judgment.lua:
+	
+	-- ~line 4 new:
+	local playeroptions = GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred")
+	
+	-- ~line 90
+		-- begin commands
+		JudgmentSet:visible( true )
+		JudgmentSet:setstate( frame )
+	-- ADD:
+		local reversestate = playeroptions:Reverse()
+		if reversestate == 0 then
+			JudgmentSet:y( mods.JudgePosY )
+		else
+			JudgmentSet:y( mods.JudgePosY * -1 )
+		end
+
+

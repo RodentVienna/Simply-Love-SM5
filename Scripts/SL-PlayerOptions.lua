@@ -173,6 +173,28 @@ local Overrides = {
 		end
 	},
 	-------------------------------------------------------------------------
+
+-- RODENT JUDGE-POS-Y BEGIN
+	JudgePosY = {
+--		do this until ComboPosY is developed and put in perspective to JudgePosY, to prevent overlapping
+		Choices = function() return { "0", "10", "20", "30", "100", "110", "120", "130", "140", "150", "160", "170", "180", "190", "200", "210", "220" } end,
+--		Choices = function()
+--			local first	= 0
+--			local last 	= 200
+--			local step 	= 10
+--
+--			return stringify( range(first, last, step), "%g")
+--		end,	
+		LoadSelections = function(self, list, pn)
+			local mods = SL[ToEnumShortString(pn)].ActiveModifiers
+			local i = FindInTable(tostring(mods.JudgePosY), self.Choices)
+			list[i] = true
+			return list
+		end
+	},
+-- RODENT JUDGE-POS-Y END
+
+	-------------------------------------------------------------------------
 	MusicRate = {
 		Choices = function()
 			local first	= 0.05
