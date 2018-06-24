@@ -19,12 +19,10 @@ local ReceptorPositions = {
 		StomperZ = 0
 	},
 	Reverse = {
-		ITG = -30,
-		StomperZ = 0
+		ITG = SL.Global.GameMode=="StomperZ" and -10 or -45,
+		StomperZ = SL.Global.GameMode=="StomperZ" and 35 or 0
 	}
 }
-
-
 
 return Def.Actor{
 	DoneLoadingNextSongMessageCommand=function(self) self:queuecommand("Position") end,
