@@ -7,11 +7,18 @@ local life_verts = {}
 local width = GetNotefieldWidth(player)
 local height = GetNotefieldWidth(player)/2.25
 
+local LifeBaseSampleRate = 0.25
+local MaxVertices = 2000 -- based on noticeable lag at ~3.5k
+local LifeSampleRate
 
 local Song, Steps, StepsType, Difficulty, TrailEntry
 local PeakNPS, NPSperMeasure, PeakNPS_BMT
 local TimingData, FirstSecond, TotalSeconds
 local verts, x, y, t
+
+local HasData = function()
+	return (PeakNPS and NPSperMeasure and #NPSperMeasure > 1)
+end
 
 -- -------------------------------------------------
 local InitializeNPSHistogram = function()
@@ -30,8 +37,9 @@ local InitializeNPSHistogram = function()
 
 	PeakNPS, NPSperMeasure = GetNPSperMeasure(Song, StepsType, Difficulty)
 
+	LifeSampleRate = BaseRate
 
-	if PeakNPS and NPSperMeasure and #NPSperMeasure > 1 then
+	if HasData() then
 
 		TimingData = Song:GetTimingData()
 
@@ -39,6 +47,19 @@ local InitializeNPSHistogram = function()
 		-- at the beginning before beat 0 has occurred
 		FirstSecond =  Song:GetFirstSecond()
 		TotalSeconds = Song:GetLastSecond() - FirstSecond
+
+		LifeSampleRate = LifeBaseSampleRate + TotalSeconds / MaxVertices
+
+		-- if the song has a 'simple' BPM, then quantize the timing
+		-- to the nearest multiple of 8ths to avoid jaggies
+		if not TimingData:HasBPMChanges() then
+			local theBPM = TimingData:GetBPMs()[1]
+			if theBPM >= 60 and theBPM <= 300 then
+				-- make sure that the BPM makes sense
+				local Interval8th = (60 / theBPM) / 2
+				LifeSampleRate = Interval8th * math.ceil(LifeSampleRate / Interval8th)
+			end
+		end
 
 		verts = {}
 		x, y, t = nil, nil, nil
@@ -72,12 +93,22 @@ InitializeNPSHistogram()
 
 -- -------------------------------------------------
 -- Actors defined below this line
-if PeakNPS and NPSperMeasure and #NPSperMeasure > 1 then
+if HasData() then
 
 	local af = Def.ActorFrame{
 		InitCommand=function(self)
 			self:xy( WideScale(-160, -214), 48 )
 				:queuecommand("Sample")
+
+			if (PREFSMAN:GetPreference("Center1Player") and IsUsingWideScreen()) then
+				-- 16:9 aspect ratio (approximately 1.7778)
+				if GetScreenAspectRatio() > 1.7 then
+					self:y(60)
+				-- if 16:10 aspect ratio
+				else
+					self:y(80)
+				end
+			end
 		end,
 		OnCommand=function(self)
 			LifeMeter = SCREENMAN:GetTopScreen():GetChild("Life"..ToEnumShortString(player))
@@ -101,6 +132,17 @@ if PeakNPS and NPSperMeasure and #NPSperMeasure > 1 then
 			self:zoomto(_screen.w/2,height)
 				:align(0,0)
 				:diffuse(color("#1E282F"))
+
+			if (PREFSMAN:GetPreference("Center1Player") and IsUsingWideScreen()) then
+				-- 16:9 aspect ratio (approximately 1.7778)
+				if GetScreenAspectRatio() > 1.7 then
+					self:x(45 * (player==PLAYER_1 and 1 or -1))
+
+				-- if 16:10 aspect ratio
+				else
+					self:x(36 * (player==PLAYER_1 and 1 or -1))
+				end
+			end
 		end
 	}
 
@@ -145,6 +187,10 @@ if PeakNPS and NPSperMeasure and #NPSperMeasure > 1 then
 		end
 	}
 
+	local SlopeAngle = function(p1, p2)
+		return math.atan2(p2[1] - p1[1], p2[2] - p1[2])
+	end
+
 	local lifeline = Def.ActorMultiVertex{
 		Name="LifeLine_AMV",
 		InitCommand=function(self)
@@ -158,13 +204,27 @@ if PeakNPS and NPSperMeasure and #NPSperMeasure > 1 then
 				x = scale( GAMESTATE:GetCurMusicSeconds(), 0, TotalSeconds, 0, width )
 				y = scale( LifeMeter:GetLife(), 1, 0, 0, height )
 
-				life_verts[#life_verts+1] = {{x, y, 0}, {1,1,1,1}}
+				-- if the slopes of the newest line segment is similar
+				-- to the previous segment, just extend the old one.
+				local condense = false
+				if (#life_verts >= 2) then
+					slope_original = SlopeAngle(life_verts[#life_verts-1][1], life_verts[#life_verts][1])
+					slope_new = SlopeAngle(life_verts[#life_verts][1], {x,y})
+
+					-- 0.18 rad = ~10 deg
+					condense = math.abs(slope_new - slope_original) < 0.18 and slope_original > 0 and slope_new > 0
+				end
+
+				if condense then
+					life_verts[#life_verts][1] = {x,y,0}
+				else
+					life_verts[#life_verts+1] = {{x, y, 0}, {1,1,1,1}}
+				end
+
 				self:SetVertices(life_verts)
 			end
 
-			-- sample the player's LifeMeter every 1/3 second
-			-- TODO: maybe replace this later with something more sensible?
-			self:sleep(0.333):queuecommand("Sample")
+			self:sleep(LifeSampleRate):queuecommand("Sample")
 		end,
 		CurrentSongChangedMessageCommand=function(self)
 			life_verts = {}
