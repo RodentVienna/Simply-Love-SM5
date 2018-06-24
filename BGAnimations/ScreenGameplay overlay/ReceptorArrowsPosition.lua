@@ -2,7 +2,7 @@
 -- in both Casual, Competitive, and ECFA modes.  If we're in one
 -- of those modes, bail now.
 
--- not exclusive to StomperZ anymre
+-- not exclusive to StomperZ anymore
 --if SL.Global.GameMode ~= "StomperZ" then
 --	return Def.Actor{}
 --end
