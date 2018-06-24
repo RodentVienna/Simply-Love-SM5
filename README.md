@@ -1,6 +1,8 @@
 # Simply MORE Love (StepMania 5)
 Forked from https://github.com/dguzek/Simply-Love-SM5, "MORE" attempts to bring additional modifications in form of player-modifiers or machine-options to the best theme in the world (your mileage may vary). MORE means MORE: all additions to dguzek's work stay intact (and defaulted in most cases), and a player can choose via modifiers if he wants(literally) Simply MORE Love.
 
+MORE #1:
+The "Receptor Arrows Position" modifier (StomperZ|ITG) in "Extra Modifiers" was an exclusive modifier for StomperZ. Now it isn't exclusive anymore, and available in any game mode. Plus, the "ITG" position in reverse scroll has been slightly updated to provide the same distance towards the "StomperZ" as in standard scroll.
 
 
 # Simply Love (StepMania 5)
