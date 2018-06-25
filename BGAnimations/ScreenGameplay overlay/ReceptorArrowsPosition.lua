@@ -12,8 +12,7 @@ local player = ...
 -- these numbers are relative to the ReceptorArrowsYStandard and ReceptorArrowsYReverse
 -- positions already specified in Metrics
 local ReceptorPositions = {
--- not exclusive to StomperZ anymore
-
+-- not exclusive to StomperZ anymore (ReverseYPos)
 	Standard = {
 	  ITG = SL.Global.GameMode=="StomperZ" and 45 or 0,
 		StomperZ = 0
